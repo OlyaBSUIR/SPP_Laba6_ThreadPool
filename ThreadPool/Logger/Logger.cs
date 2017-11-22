@@ -8,17 +8,17 @@ namespace SPP_Laba6
     public class Logger
     {
         private string DatetimeFormat;
-        private string Filename;
+        private string fileName;
         public static Logger logger;
         private static object syncRoot = new Object();
 
         public Logger(bool append = false)
         {
             DatetimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
-            //Filename = Assembly.GetExecutingAssembly().GetName().Name + ".log";
-            Filename = "log_file.log";
-            string logHeader = Filename + " is created.";
-            if (!File.Exists(Filename))
+            //fileName = Assembly.GetExecutingAssembly().GetName().Name + ".log";
+            fileName = "log_file.log";
+            string logHeader = fileName + " is created.";
+            if (!File.Exists(fileName))
             {
                 WriteLine(DateTime.Now.ToString(DatetimeFormat) + " " + logHeader, false);
             }
@@ -78,14 +78,14 @@ namespace SPP_Laba6
         {
             try
             {
-                using (StreamWriter Writer = new StreamWriter(Filename, append, Encoding.UTF8))
+                using (StreamWriter Writer = new StreamWriter(fileName, append, Encoding.UTF8))
                 {
                     if (text != "") Writer.WriteLine(text);
                 }
             }
             catch
             {
-                throw;
+                throw new IOException();
             }
         }
 
