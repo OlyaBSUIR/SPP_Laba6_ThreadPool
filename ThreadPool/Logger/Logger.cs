@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace SPP_Laba6
+namespace MyLogger
 {
     public class Logger
     {

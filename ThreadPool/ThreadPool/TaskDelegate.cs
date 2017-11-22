@@ -6,10 +6,5 @@ using System.Threading.Tasks;
 
 namespace MyThreadPool
 {
-    public enum TaskPriority
-    {
-        LOW,
-        MIDDLE,
-        HIGH
-    }
+    public delegate void TaskDelegate();
 }

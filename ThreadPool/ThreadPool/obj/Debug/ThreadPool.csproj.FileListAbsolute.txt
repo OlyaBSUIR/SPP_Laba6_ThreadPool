@@ -1,0 +1,7 @@
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\obj\Debug\ThreadPool.csprojResolveAssemblyReference.cache
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\bin\Debug\ThreadPool.dll
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\bin\Debug\ThreadPool.pdb
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\bin\Debug\Logger.dll
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\bin\Debug\Logger.pdb
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\obj\Debug\ThreadPool.dll
+C:\Users\Оля\Desktop\SPP_Laba6\ThreadPool\ThreadPool\obj\Debug\ThreadPool.pdb
