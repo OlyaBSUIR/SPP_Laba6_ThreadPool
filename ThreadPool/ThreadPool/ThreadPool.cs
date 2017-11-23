@@ -11,11 +11,12 @@ namespace MyThreadPool
     public class PriorityThreadPool
     {
         private const int MIN_THREAD_COUNT = 2;
+
         private List<Task> listOfTasks;
         private List<TaskItem> listOfTaskItem;
         private int activeTaskCount;
         private int maxThreadCount;
-        private int TaskCount = 0;
+        private int taskCount = 0;
         private Logger logger = Logger.getInstance(true);
         private int taskNumber = 0;
         private bool isClosed;
@@ -38,30 +39,16 @@ namespace MyThreadPool
                 listOfTasks.Add(task);
                 logger.Info("Создана задача №" + i);
                 task.Start();
-
             }
         }
-
-        public void WaitAll()
-        {
-            foreach (Task t in listOfTasks)
-                t.Wait();
-        }
-
-        public int ThreadCount
-        {
-            get { return listOfTasks.Count; }
-        }
-
+        
         private TaskItem SelectTask()
         {
-
             lock (listOfTaskItem)
             {
                 if (listOfTaskItem.Count == 0)
                     return null;// throw new ArgumentException();
 
-                var waitingTasks = listOfTaskItem.Where(t => !t.isRunned);
                 var highTasks = listOfTaskItem.Where(t => t.getPriority() == TaskPriority.HIGH);
                 var middleTasks = listOfTaskItem.Where(t => t.getPriority() == TaskPriority.MIDDLE);
 
@@ -79,16 +66,18 @@ namespace MyThreadPool
                     }
                     else
                     {
-                        var lowTasks = waitingTasks.Where(t => t.getPriority() == TaskPriority.LOW);
+                        var lowTasks = listOfTaskItem.Where(t => t.getPriority() == TaskPriority.LOW);
                         if (lowTasks != null)
                         {
-                            logger.Info("Взята задача c id=" + lowTasks.FirstOrDefault().id);
+                            logger.Info("Взята задача c id=" + lowTasks.First().id);
                         }
-                        return lowTasks.FirstOrDefault();
+                        return lowTasks.First();
                     }
                 }
             }
         }
+        
+         
 
         public void Close()
         {
@@ -98,13 +87,8 @@ namespace MyThreadPool
                 Monitor.PulseAll(listOfTaskItem);
             }
 
-            lock (this)
-            {
-                while (activeTaskCount > 0)
-                    Monitor.Wait(this);
-            }
-
-            WaitAll();
+            foreach (Task t in listOfTasks)
+                t.Wait();
         }
 
         private void tryAddNewTaskInPool()
@@ -117,9 +101,13 @@ namespace MyThreadPool
                 logger.Info("Создана задача №" + activeTaskCount);
                 task.Start();
             }
+            else
+            {
+                logger.Warning("Достигнуто максимальное количество потоков в пуле");
+            }
         }
 
-        public void EnqueueTask(TaskDelegate function)
+        public void AddTask(TaskDelegate function, TaskPriority priority = TaskPriority.LOW)
         {
             lock (listOfTaskItem)
             {
@@ -127,15 +115,14 @@ namespace MyThreadPool
                 {
                     TaskItem task = new TaskItem();
                     task.setFunction(function);
+                    task.setPriority(priority);
                     task.id = taskNumber;
-                    taskNumber = Interlocked.Increment(ref TaskCount);
-                    task.isRunned = false;
+                    taskNumber = Interlocked.Increment(ref taskCount);
                     listOfTaskItem.Add(task);
                     if (listOfTaskItem.Count > activeTaskCount)
                     {
                         tryAddNewTaskInPool();
                     }
-                    //listOfTaskItem.Enqueue(task);
                     Monitor.Pulse(listOfTaskItem);
                 }
                 else
@@ -143,18 +130,18 @@ namespace MyThreadPool
             }
         }
 
-        private TaskDelegate DequeueTask()
+        private TaskDelegate TakeTask()
         {
             lock (listOfTaskItem)
             {
                 while (listOfTaskItem.Count == 0 && !isClosed)
                     Monitor.Wait(listOfTaskItem);
+
                 TaskDelegate t = null;
                 if (listOfTaskItem.Count > 0)
                 {
                     TaskItem task = SelectTask();
                     t = task.getFunction();
-                    task.isRunned = true;
                     listOfTaskItem.Remove(task);
 
                 }
@@ -167,19 +154,20 @@ namespace MyThreadPool
             TaskDelegate task;
             do
             {
-                task = DequeueTask();
+                task = TakeTask();
                 try
                 {
                     if (task != null)
                         task();
                 }
-                catch (ThreadAbortException)
+                catch (ThreadAbortException ex)
                 {
+                    logger.Error(ex.Message);
                     Thread.ResetAbort();
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    logger.Error(ex.Message);
                 }
             } while (task != null);
             lock (this)

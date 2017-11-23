@@ -15,38 +15,44 @@ namespace Test
 
         static void TestTask()
         {
-            try
+            var taskNumber = Interlocked.Increment(ref TaskCount);
+            if (TaskCount == 5)
             {
-                var taskNumber = Interlocked.Increment(ref TaskCount);
-                WriteTaskNumber(taskNumber);
-
-                //Thread.CurrentThread.Abort();
+                throw new Exception();
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            Wait();
         }
 
-        static void WriteTaskNumber(int taskNumber)
+        static void Wait()
         {
-            for (int i = 0; i < 10000; ++i)
-            {
-                //Console.Write(" {0} ", taskNumber);
-            }
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
         }
 
         static void Main(string[] args)
         {
             Logger logger = Logger.getInstance();
-            var taskQueue = new PriorityThreadPool(4);
+            int id = 0;
+            var taskPool = new PriorityThreadPool(4);
             for (int i = 0; i < 10; i++)
             {
-                taskQueue.EnqueueTask(TestTask);
-                logger.Info("Добавлена задача №" + i);
+                taskPool.AddTask(TestTask);
+                logger.Info("Добавлена задача №" + id);
+                ++id;
             }
-            taskQueue.Close();
+            for (int i = 0; i < 40; i++)
+            {
+                taskPool.AddTask(TestTask, TaskPriority.HIGH);
+                logger.Info("Добавлена задача №" + id);
+                ++id;
+            }
+            for (int i = 0; i < 10; i++)
+            {
+                taskPool.AddTask(TestTask, TaskPriority.MIDDLE);
+                logger.Info("Добавлена задача №" + id);
+                ++id;
+            }
+            taskPool.Close();
+            Console.WriteLine("=)");
             Console.ReadLine();
         }
     }

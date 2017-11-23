@@ -11,8 +11,13 @@ namespace MyThreadPool
     {
         private TaskDelegate function;
         private TaskPriority priority;
-        public bool isRunned { get; set; }
         public int id { get; set; }
+
+        public TaskItem(TaskDelegate task = null, TaskPriority priority =TaskPriority.LOW)
+        {
+            this.function = task;
+            this.priority = priority;
+        }
 
         public TaskPriority getPriority()
         {
@@ -34,11 +39,5 @@ namespace MyThreadPool
             this.function = function;
         }
 
-        public TaskItem(TaskDelegate task = null, TaskPriority priority = TaskPriority.LOW)
-        {
-            this.function = task;
-            this.priority = priority;
-            isRunned = false;
-        }
     }
 }

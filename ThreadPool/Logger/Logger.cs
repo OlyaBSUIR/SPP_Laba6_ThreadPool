@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace MyLogger
 {
@@ -11,6 +12,7 @@ namespace MyLogger
         private string fileName;
         public static Logger logger;
         private static object syncRoot = new Object();
+        private ReaderWriterLock rwl = new ReaderWriterLock();
 
         public Logger(bool append = false)
         {
@@ -44,20 +46,24 @@ namespace MyLogger
 
         public void Error(string text)
         {
+            rwl.AcquireWriterLock(1000);
             WriteFormattedLog(LogLevel.ERROR, text);
+            rwl.ReleaseWriterLock();
         }
 
         public void Info(string text)
         {
-            lock (syncRoot)
-            {
-                WriteFormattedLog(LogLevel.INFO, text);
-            }
+            rwl.AcquireWriterLock(1000);
+            WriteFormattedLog(LogLevel.INFO, text);
+            rwl.ReleaseWriterLock();
         }
 
         public void Warning(string text)
         {
+            rwl.AcquireWriterLock(1000);
             WriteFormattedLog(LogLevel.WARNING, text);
+            rwl.ReleaseWriterLock();
+
         }
 
         private void WriteFormattedLog(LogLevel level, string text)
@@ -89,7 +95,6 @@ namespace MyLogger
             }
         }
 
-        [Flags]
         private enum LogLevel
         {
             INFO,
